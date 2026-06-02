@@ -1,4 +1,4 @@
-// Copyright 2019 The Cobalt Authors. All Rights Reserved.
+// Copyright 2026 The Cobalt Authors. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,10 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "starboard/file.h"
+#include "starboard/shared/modular/starboard_layer_posix_ioctl_abi_wrappers.h"
 
-bool SbFileAtomicReplace(const char* path,
-                         const char* data,
-                         int64_t data_size) {
-  return false;
+#include <sys/ioctl.h>
+
+SB_EXPORT int __abi_wrap_ioctl_FIONREAD(int fd, int* arg) {
+  return ioctl(fd, FIONREAD, arg);
 }
