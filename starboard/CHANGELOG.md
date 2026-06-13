@@ -31,6 +31,10 @@ The `SbThreadSetPriority` API is no longer used. Instead, the standard POSIX
 The `SbThreadGetPriority` API is no longer used. Instead, the standard POSIX
 `getpriority` API should be used directly.
 
+### Removed SbThreadId
+The `SbThreadId` type, `kSbThreadInvalidId` macro, and `SbThreadIsValidId` function
+are no longer used. Instead, standard POSIX `pid_t` and `gettid()` should be used.
+
 ### Removed SbThreadSampler and SbThreadContext
 The SbThreadSampler and SbThreadContext APIs are no longer used. Instead,
 POSIX APIs are used directly.
@@ -48,6 +52,7 @@ Implementations of `DecodeTarget` for YUV planes should ensure they use
 rendering issues caused by Chromium's shader expectations.
 
 ### Added the following POSIX symbols:
+* `alarm`
 * `getrandom`
 * `getuid`
 * `if_indextoname`
@@ -63,6 +68,14 @@ rendering issues caused by Chromium's shader expectations.
 
 ### Added AV2 to SbMediaVideoCodec
 This prepares Cobalt for future AV2 playback support.
+
+### Added SbMediaCanChangeType() to media.h
+This API will query the starboard implementation for its support of SourceBuffer.changeType().
+
+### Updated the capabilities of SbPlayerWriteSamples()
+If `SbMediaCanChangeType` returns true, `SbPlayerWriteSamples()` may write
+samples to an `SbPlayer` that has different data (such as MIME string and codec type) than what the
+`SbPlayer` is currently configured to.
 
 ### Removed unused configuration constants
 The following configuration constants were removed as they are no longer used by Cobalt core:

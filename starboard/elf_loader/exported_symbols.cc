@@ -57,6 +57,7 @@
 #include "starboard/log.h"
 #include "starboard/microphone.h"
 #include "starboard/player.h"
+#include "starboard/shared/modular/starboard_layer_posix__Exit_abi_wrappers.h"
 #include "starboard/shared/modular/starboard_layer_posix_auxv_abi_wrappers.h"
 #include "starboard/shared/modular/starboard_layer_posix_directory_abi_wrappers.h"
 #include "starboard/shared/modular/starboard_layer_posix_errno_abi_wrappers.h"
@@ -85,7 +86,6 @@
 #include "starboard/speech_synthesis.h"
 #include "starboard/storage.h"
 #include "starboard/system.h"
-#include "starboard/thread.h"
 #include "starboard/time_zone.h"
 #include "starboard/window.h"
 
@@ -140,6 +140,7 @@ ExportedSymbols::ExportedSymbols() {
   REGISTER_SYMBOL(SbLogRaw);
   REGISTER_SYMBOL(SbLogRawDumpStack);
   REGISTER_SYMBOL(SbLogRawFormat);
+  REGISTER_SYMBOL(SbMediaCanChangeType);
   REGISTER_SYMBOL(SbMediaCanPlayMimeAndKeySystem);
   REGISTER_SYMBOL(SbMediaGetAudioBufferBudget);
   REGISTER_SYMBOL(SbMediaGetAudioConfiguration);
@@ -217,6 +218,7 @@ ExportedSymbols::ExportedSymbols() {
   REGISTER_SYMBOL(SbWindowSetDefaultOptions);
 
   // POSIX APIs
+  REGISTER_SYMBOL(alarm);
   REGISTER_SYMBOL(aligned_alloc);
   REGISTER_SYMBOL(calloc);
   REGISTER_SYMBOL(close);
@@ -288,6 +290,7 @@ ExportedSymbols::ExportedSymbols() {
   // in //starboard/shared/modular.
   // TODO: b/316603042 - Detect via NPLB and only add the wrapper if needed.
 
+  REGISTER_WRAPPER(_Exit);
   REGISTER_WRAPPER(accept);
   REGISTER_WRAPPER(access);
   REGISTER_WRAPPER(bind);
