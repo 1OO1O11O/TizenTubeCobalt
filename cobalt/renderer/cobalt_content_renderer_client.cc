@@ -52,8 +52,6 @@ const char kH5vccSettingsKeyMediaAllowAudioWritingOnPause[] =
     "Media.AllowAudioWritingOnPause";
 const char kH5vccSettingsKeyMediaBypassMojoForMedia[] =
     "Media.BypassMojoForMedia";
-const char kH5vccSettingsKeyMediaDisableLowPerformanceSoftwareDecoder[] =
-    "Media.DisableLowPerformanceSoftwareDecoder";
 const char kH5vccSettingsKeyMediaEnableAv1StartupOptimization[] =
     "Media.EnableAv1StartupOptimization";
 // TODO: b/474454335 - Remove once seek experiment is done.
@@ -89,8 +87,6 @@ const char kH5vccSettingsKeyMediaSkipFlushOnDecoderTeardown[] =
     "Media.SkipFlushOnDecoderTeardown";
 const char kH5vccSettingsKeyMediaSkipVideoFramesOver60Fps[] =
     "Media.SkipVideoFramesOver60Fps";
-const char kH5vccSettingsKeyMediaUseDualThreadsForVideo[] =
-    "Media.UseDualThreadsForVideo";
 
 using ExperimentalFeatures =
     ::media::StarboardRendererConfig::ExperimentalFeatures;
@@ -218,11 +214,6 @@ ExperimentalFeatures ProcessH5vccSettings(
     parsed.bypass_mojo_for_media = *val != 0;
   }
   if (auto* val = GetSettingValue<int64_t>(
-          settings,
-          kH5vccSettingsKeyMediaDisableLowPerformanceSoftwareDecoder)) {
-    parsed.disable_low_performance_sw_decoder = *val != 0;
-  }
-  if (auto* val = GetSettingValue<int64_t>(
           settings, kH5vccSettingsKeyMediaEnableAv1StartupOptimization)) {
     parsed.enable_av1_startup_optimization = *val != 0;
   }
@@ -275,10 +266,6 @@ ExperimentalFeatures ProcessH5vccSettings(
   if (auto* val = GetSettingValue<int64_t>(
           settings, kH5vccSettingsKeyMediaSkipVideoFramesOver60Fps)) {
     parsed.skip_video_frames_over_60_fps = *val != 0;
-  }
-  if (auto* val = GetSettingValue<int64_t>(
-          settings, kH5vccSettingsKeyMediaUseDualThreadsForVideo)) {
-    parsed.use_dual_threads_for_video = *val != 0;
   }
 
   parsed.video_decoder_initial_preroll_count = ProcessRangedIntH5vccSetting(

@@ -65,8 +65,6 @@ void SetExperimentalFeaturesForCurrentThread(
 
   experiment_features.allow_audio_writing_on_pause =
       extension_features->allow_audio_writing_on_pause;
-  experiment_features.disable_low_performance_sw_decoder =
-      extension_features->disable_low_performance_sw_decoder;
   experiment_features.enable_av1_startup_optimization =
       extension_features->enable_av1_startup_optimization;
   experiment_features.enable_low_latency =
@@ -92,8 +90,6 @@ void SetExperimentalFeaturesForCurrentThread(
           extension_features->enable_simd_based_audio_format_switching);
   experiment_features.enable_trivial_optimizations =
       FromBoolPointer(extension_features->enable_trivial_optimizations);
-  experiment_features.use_dual_threads_for_video =
-      FromBoolPointer(extension_features->use_dual_threads_for_video);
   experiment_features.video_decoder_initial_preroll_count =
       FromIntPointer(extension_features->video_decoder_initial_preroll_count);
   experiment_features.video_renderer_min_decoded_frames =

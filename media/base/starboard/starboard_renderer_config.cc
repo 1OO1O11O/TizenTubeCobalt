@@ -46,8 +46,6 @@ std::ostream& operator<<(
             << ToString(features.allow_audio_writing_on_pause)
             << ", bypass_mojo_for_media="
             << ToString(features.bypass_mojo_for_media)
-            << ", disable_low_performance_sw_decoder="
-            << ToString(features.disable_low_performance_sw_decoder)
             << ", enable_av1_startup_optimization="
             << ToString(features.enable_av1_startup_optimization)
             << ", enable_flush_during_seek="
@@ -73,8 +71,6 @@ std::ostream& operator<<(
             << ToString(features.enable_trivial_optimizations)
             << ", enable_simd_based_audio_format_switching="
             << ToString(features.enable_simd_based_audio_format_switching)
-            << ", use_dual_threads_for_video="
-            << ToString(features.use_dual_threads_for_video)
             << ", max_samples_per_write="
             << ToString(features.max_samples_per_write)
             << ", video_decoder_initial_preroll_count="
