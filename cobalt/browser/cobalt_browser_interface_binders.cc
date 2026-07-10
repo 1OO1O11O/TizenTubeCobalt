@@ -148,8 +148,6 @@ void PopulateCobaltFrameBinders(
                               H5vccPlatformServiceManagerImpl::GetOrCreate));
   binder_map->Add<h5vcc_tizentube::mojom::H5vccTizentube>(
       base::BindRepeating(&h5vcc_tizentube::H5vccTizentubeImpl::Create));
-  binder_map->Add<h5vcc_updater::mojom::H5vccUpdater>(
-      base::BindRepeating(&h5vcc_updater::H5vccUpdaterImpl::Create));
 }
 
 }  // namespace cobalt
