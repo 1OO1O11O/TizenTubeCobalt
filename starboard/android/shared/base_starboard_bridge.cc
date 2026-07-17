@@ -450,7 +450,7 @@ void StarboardBridge::HideSplashScreen(JNIEnv* env) const {
 // TizenTube Cobalt APIs
 bool StarboardBridge::InstallAppFromURL(JNIEnv* env, const char* url) const {
   SB_CHECK(env);
-  return Java_StarboardBridge_installAppFromURL(
+  return Java_BaseStarboardBridge_installAppFromURL(
       env, j_starboard_bridge_, ConvertUTF8ToJavaString(env, url));
 }
 
@@ -463,34 +463,34 @@ void StarboardBridge::SetStartupMilestone(jint milestone) const {
 std::string StarboardBridge::GetVersion(JNIEnv* env) const {
   SB_CHECK(env);
   return ConvertJavaStringToUTF8(
-      env, Java_StarboardBridge_getVersion(env, j_starboard_bridge_));
+      env, Java_BaseStarboardBridge_getVersion(env, j_starboard_bridge_));
 }
 
 std::string StarboardBridge::GetArchitecture(JNIEnv* env) const {
   SB_CHECK(env);
   return ConvertJavaStringToUTF8(
-      env, Java_StarboardBridge_getArchitecture(env, j_starboard_bridge_));
+      env, Java_BaseStarboardBridge_getArchitecture(env, j_starboard_bridge_));
 }
 
 std::string StarboardBridge::GetBrandAndModel(JNIEnv* env) const {
   SB_CHECK(env);
   return ConvertJavaStringToUTF8(
-      env, Java_StarboardBridge_getBrandAndModel(env, j_starboard_bridge_));
+      env, Java_BaseStarboardBridge_getBrandAndModel(env, j_starboard_bridge_));
 }
 
 void StarboardBridge::SetFrameRate(JNIEnv* env, float frame_rate) const {
   SB_CHECK(env);
-  Java_StarboardBridge_setFrameRate(env, j_starboard_bridge_, frame_rate);
+  Java_BaseStarboardBridge_setFrameRate(env, j_starboard_bridge_, frame_rate);
 }
 
 void StarboardBridge::EnterPIP(JNIEnv* env) const {
   SB_CHECK(env);
-  Java_StarboardBridge_enterPIP(env, j_starboard_bridge_);
+  Java_BaseStarboardBridge_enterPIP(env, j_starboard_bridge_);
 }
 
 bool StarboardBridge::HasSystemFeature(JNIEnv* env, const char* feature_name) const {
   SB_CHECK(env);
-  return Java_StarboardBridge_hasSystemFeature(
+  return Java_BaseStarboardBridge_hasSystemFeature(
       env, j_starboard_bridge_, ConvertUTF8ToJavaString(env, feature_name));
 }
 
