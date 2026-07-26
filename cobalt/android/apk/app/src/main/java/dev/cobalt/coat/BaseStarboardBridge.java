@@ -41,6 +41,7 @@ import dev.cobalt.media.AudioOutputManager;
 import dev.cobalt.util.DisplayUtil;
 import dev.cobalt.util.Holder;
 import dev.cobalt.util.Log;
+import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -139,8 +140,8 @@ public class BaseStarboardBridge {
         BaseStarboardBridgeJni.get()
             .startNativeStarboard(
                 getAssetsFromContext(),
-                getFilesAbsolutePath(),
-                getCacheAbsolutePath(),
+                getFilesCanonicalPath(),
+                getCacheCanonicalPath(),
                 getNativeLibraryDir());
 
     BaseStarboardBridgeJni.get().handleDeepLink(startDeepLink, /* applicationStarted= */ false);
@@ -212,10 +213,9 @@ public class BaseStarboardBridge {
     if (mApplicationStopped) {
       // We can't restart the starboard app, so kill the process for a clean start next time.
       Log.i(TAG, "Activity destroyed after shutdown; killing app.");
-      BaseStarboardBridgeJni.get().closeNativeStarboard(mNativeApp);
       mTtsHelper.shutdown();
       mAdvertisingId.shutdown();
-      System.exit(0);
+      BaseStarboardBridgeJni.get().closeNativeStarboard(mNativeApp);
     } else {
       Log.i(TAG, "Activity destroyed without shutdown; app suspended in background.");
     }
@@ -362,11 +362,37 @@ public class BaseStarboardBridge {
   }
 
   /**
+   * Returns the canonical path to the directory where application specific files should be written,
+   * resolving symbolic links. nplb tests compare against resolved paths.
+   */
+  protected String getFilesCanonicalPath() {
+    try {
+      return mAppContext.getFilesDir().getCanonicalPath();
+    } catch (IOException e) {
+      Log.w(TAG, "Failed to get canonical path", e);
+      return getFilesAbsolutePath();
+    }
+  }
+
+  /**
    * Returns the absolute path to the application specific cache directory on the filesystem. May be
    * overridden for use cases that need to segregate storage.
    */
   protected String getCacheAbsolutePath() {
     return mAppContext.getCacheDir().getAbsolutePath();
+  }
+
+  /**
+   * Returns the canonical path to the application specific cache directory, resolving symbolic
+   * links. nplb tests compare against resolved paths.
+   */
+  protected String getCacheCanonicalPath() {
+    try {
+      return mAppContext.getCacheDir().getCanonicalPath();
+    } catch (IOException e) {
+      Log.w(TAG, "Failed to get canonical path", e);
+      return getCacheAbsolutePath();
+    }
   }
 
   // TODO: (cobalt b/372559388) remove or migrate JNI?
@@ -578,8 +604,8 @@ public class BaseStarboardBridge {
   @CalledByNative
   public void resetVideoSurface() {
     Activity activity = mActivityHolder.get();
-    if (activity instanceof CobaltActivity) {
-      ((CobaltActivity) activity).resetVideoSurface();
+    if (activity instanceof BaseCobaltActivity) {
+      ((BaseCobaltActivity) activity).resetVideoSurface();
     }
   }
 
@@ -587,8 +613,8 @@ public class BaseStarboardBridge {
   @CalledByNative
   public void setVideoSurfaceBounds(final int x, final int y, final int width, final int height) {
     Activity activity = mActivityHolder.get();
-    if (activity instanceof CobaltActivity) {
-      ((CobaltActivity) activity).setVideoSurfaceBounds(x, y, width, height);
+    if (activity instanceof BaseCobaltActivity) {
+      ((BaseCobaltActivity) activity).setVideoSurfaceBounds(x, y, width, height);
     }
   }
 
@@ -687,10 +713,10 @@ public class BaseStarboardBridge {
       return;
     }
     Activity activity = mActivityHolder.get();
-    if (!(activity instanceof CobaltActivity)) {
+    if (!(activity instanceof BaseCobaltActivity)) {
       return;
     }
-    long javaStartTimestamp = ((CobaltActivity) activity).getAppStartTimestamp();
+    long javaStartTimestamp = ((BaseCobaltActivity) activity).getAppStartTimestamp();
     long javaStopTimestamp = System.nanoTime();
     long appStartDuration =
         (javaStopTimestamp - javaStartTimestamp) / mTimeNanosecondsPerMicrosecond;
@@ -764,8 +790,8 @@ public class BaseStarboardBridge {
   @CalledByNative
   public void closeApp() {
     Activity activity = mActivityHolder.get();
-    if (activity instanceof CobaltActivity) {
-      ((CobaltActivity) activity).finishAffinity();
+    if (activity instanceof BaseCobaltActivity) {
+      ((BaseCobaltActivity) activity).finishAffinity();
     }
   }
 
