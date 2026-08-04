@@ -19,6 +19,7 @@
 #include "third_party/blink/renderer/modules/cobalt/h5vcc_accessibility/h_5_vcc_accessibility.h"
 #include "third_party/blink/renderer/modules/cobalt/h5vcc_experiments/h_5_vcc_experiments.h"
 #include "third_party/blink/renderer/modules/cobalt/h5vcc_metrics/h_5_vcc_metrics.h"
+#include "third_party/blink/renderer/modules/cobalt/h5vcc_native_stability/h_5_vcc_native_stability.h"
 #include "third_party/blink/renderer/modules/cobalt/h5vcc_runtime/h_5_vcc_runtime.h"
 #include "third_party/blink/renderer/modules/cobalt/h5vcc_settings/h_5_vcc_settings.h"
 #include "third_party/blink/renderer/modules/cobalt/h5vcc_storage/h_5_vcc_storage.h"
@@ -52,7 +53,8 @@ H5vcc::H5vcc(LocalDOMWindow& window)
       storage_(MakeGarbageCollected<H5vccStorage>(window)),
       settings_(MakeGarbageCollected<H5vccSettings>(window)),
       tizentube_(MakeGarbageCollected<H5vccTizenTube>(window)),
-      updater_(MakeGarbageCollected<H5vccUpdater>(window)) {}
+      updater_(MakeGarbageCollected<H5vccUpdater>(window)),
+      native_stability_(MakeGarbageCollected<H5vccNativeStability>(window)) {}
 
 void H5vcc::Trace(Visitor* visitor) const {
   visitor->Trace(crash_log_);
@@ -65,6 +67,7 @@ void H5vcc::Trace(Visitor* visitor) const {
   visitor->Trace(settings_);
   visitor->Trace(tizentube_);
   visitor->Trace(updater_);
+  visitor->Trace(native_stability_);
   Supplement<LocalDOMWindow>::Trace(visitor);
   ScriptWrappable::Trace(visitor);
 }
