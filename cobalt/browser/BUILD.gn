@@ -191,6 +191,7 @@ source_set("features") {
     "features.cc",
     "features.h",
   ]
+  public = [ "features.h" ]
   deps = [
     "//base",
     "//cobalt/build/configs:buildflags",
@@ -221,6 +222,7 @@ source_set("global_features") {
     ":metrics",
     "//base",
     "//cobalt/browser/constants:cobalt_experiment_names",
+    "//cobalt/browser/constants:cobalt_pref_names",
     "//components/metrics",
     "//components/metrics_services_manager",
     "//components/prefs",
@@ -239,6 +241,7 @@ if (is_starboard || is_androidtv) {
       ":global_features",
       "//base",
       "//cobalt/browser/h5vcc_native_stability:h5vcc_native_stability",
+      "//cobalt/build/configs:buildflags",
     ]
   }
 }
