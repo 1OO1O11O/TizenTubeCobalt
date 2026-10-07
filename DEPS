@@ -1525,7 +1525,7 @@ deps = {
   },
 
   'src/cobalt/internal': {
-    'url': Var('cobalt_internal_git') + '/cobalt/internal.git' + '@' + 'f7def3270058e9eb155cbb0140ffdf6633aef04b',
+    'url': Var('cobalt_internal_git') + '/cobalt/internal.git' + '@' + 'b4b1c4315e80d81eb977b9ef72d0386e3899c5f9',
     'condition': 'checkout_cobalt_internal',
   },
 

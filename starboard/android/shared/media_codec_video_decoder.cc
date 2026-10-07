@@ -46,7 +46,6 @@
 #include "starboard/shared/starboard/media/media_tracing.h"
 #include "starboard/shared/starboard/media/mime_type.h"
 #include "starboard/shared/starboard/player/filter/video_frame_internal.h"
-#include "starboard/shared/starboard/player/pooled_allocator.h"
 #include "third_party/jni_zero/jni_zero.h"
 
 namespace starboard {
@@ -57,31 +56,9 @@ using jni_zero::JavaRef;
 using std::placeholders::_1;
 using std::placeholders::_2;
 
-std::atomic<PooledAllocator*> g_video_allocator_ptr{nullptr};
-std::atomic<bool> g_video_frame_pool_enabled{false};
-
-PooledAllocator* GetVideoFrameAllocator();
-
 class VideoFrameImpl final : public VideoFrame {
  public:
   typedef std::function<void()> VideoFrameReleaseCallback;
-
-  void* operator new(size_t size) {
-    if (g_video_frame_pool_enabled.load(std::memory_order_relaxed)) {
-      return GetVideoFrameAllocator()->Allocate(size);
-    }
-    return ::operator new(size);
-  }
-
-  void operator delete(void* ptr) {
-    PooledAllocator* allocator =
-        g_video_allocator_ptr.load(std::memory_order_acquire);
-    if (allocator) {
-      allocator->Free(ptr);
-    } else {
-      ::operator delete(ptr);
-    }
-  }
 
   VideoFrameImpl(const DequeueOutputResult& dequeue_output_result,
                  MediaCodec* media_codec_bridge,
@@ -145,24 +122,12 @@ constexpr int kDefaultMaxPendingInputsSize = 128;
 // frames in the codec and renderer.
 constexpr int kVideoFrameTrackerMargin = 100;
 
+// Temporary capacity increase for VideoFrameTracker until the experiment for
+// backpressure fix (kMediaFixNeedMoreInputBackpressure) is completed.
+// TODO: b/539672039 - Remove this once the experiment is completed.
+constexpr int kVideoFrameTrackerCapacityWithoutBackpressureFix = 3'000;
+
 const int kFpsGuesstimateRequiredInputBufferCount = 3;
-
-// kPoolSize (20) is chosen to accommodate the maximum number of video frames
-// that can be in-flight concurrently in the decoder and renderer pipeline.
-// This is a safe margin to avoid fallback to heap allocation (peak observed:
-// 9).
-constexpr size_t kPoolSize = 20;
-
-PooledAllocator* GetVideoFrameAllocator() {
-  static PooledAllocator* allocator_ptr = [] {
-    static NoDestructor<PooledAllocator> allocator(
-        "VideoFramePool", sizeof(VideoFrameImpl), kPoolSize);
-    PooledAllocator* a = allocator.get();
-    g_video_allocator_ptr.store(a, std::memory_order_release);
-    return a;
-  }();
-  return allocator_ptr;
-}
 
 void StubDrmSessionUpdateRequestFunc(SbDrmSystem drm_system,
                                      void* context,
@@ -327,11 +292,6 @@ MediaCodecVideoDecoder::CreateInternal(
   }
   return video_decoder;
 }
-// static
-void MediaCodecVideoDecoder::SetVideoFramePoolEnabled(bool enabled) {
-  g_video_frame_pool_enabled.store(enabled, std::memory_order_relaxed);
-}
-
 MediaCodecVideoDecoder::MediaCodecVideoDecoder(
     PassKey<MediaCodecVideoDecoder>,
     std::unique_ptr<MediaCodec::Factory> media_codec_factory,
@@ -347,11 +307,16 @@ MediaCodecVideoDecoder::MediaCodecVideoDecoder(
       output_mode_(stream_config.output_mode),
       decode_target_graphics_context_provider_(
           stream_config.decode_target_graphics_context_provider),
-      max_video_size_(
+      max_video_size_(GetLowestResolution(
           ParseMaxResolution(stream_config.max_video_capabilities,
-                             stream_config.video_stream_info.frame_size)),
+                             "max_video_capabilities",
+                             stream_config.video_stream_info.frame_size),
+          ParseMaxResolution(stream_config.max_video_resolution,
+                             "max_video_resolution",
+                             stream_config.video_stream_info.frame_size))),
       require_software_codec_(
-          IsSoftwareDecoderRequired(stream_config.max_video_capabilities)),
+          IsSoftwareDecoderRequired(pipeline_config.experimental_features,
+                                    stream_config.max_video_capabilities)),
       tunnel_mode_audio_session_id_(tunnel_mode_config.audio_session_id),
       max_video_input_size_(pipeline_config.max_input_size),
       use_dual_threads_(pipeline_config.use_dual_threads),
@@ -429,7 +394,9 @@ MediaCodecVideoDecoder::MediaCodecVideoDecoder(
 
   if (is_video_frame_tracker_enabled_) {
     video_frame_tracker_ = std::make_unique<VideoFrameTracker>(
-        max_pending_inputs_size_ + kVideoFrameTrackerMargin,
+        fix_need_more_input_backpressure_
+            ? max_pending_inputs_size_ + kVideoFrameTrackerMargin
+            : kVideoFrameTrackerCapacityWithoutBackpressureFix,
         ignore_stale_rendered_frames_after_seek_);
   }
 
@@ -554,11 +521,10 @@ void MediaCodecVideoDecoder::WriteInputBuffers(
         if (IsFrameSizeExceedingCapabilities(frame_size,
                                              max_video_size_.value())) {
           SB_LOG(ERROR) << "Video frame size " << frame_size
-                        << " exceeds max_video_capabilities "
-                        << max_video_size_.value()
+                        << " exceeds max resolution " << max_video_size_.value()
                         << ". Raising kSbPlayerErrorCapabilityChanged.";
           ReportError(kSbPlayerErrorCapabilityChanged,
-                      "Video frame size exceeds max_video_capabilities.");
+                      "Video frame size exceeds max resolution.");
           return;
         }
       }

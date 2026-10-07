@@ -66,6 +66,7 @@ class MediaCodecVideoDecoder : public VideoDecoder,
         decode_target_graphics_context_provider = nullptr;
     void* surface_view = nullptr;
     std::string max_video_capabilities;
+    std::string max_video_resolution;
   };
 
   struct TunnelModeConfig {
@@ -101,8 +102,6 @@ class MediaCodecVideoDecoder : public VideoDecoder,
                    const TunnelModeConfig& tunnel_mode_config,
                    const PipelineConfig& pipeline_config,
                    const PlatformOptions& platform_options);
-
-  static void SetVideoFramePoolEnabled(bool enabled);
 
   MediaCodecVideoDecoder(
       PassKey<MediaCodecVideoDecoder>,

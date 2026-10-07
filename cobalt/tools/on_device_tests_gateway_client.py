@@ -67,10 +67,6 @@ _DEPS_ARCH_MAP = {
 }
 _GCS_ARCHIVE_DEVICE_FAMILIES = ('rdk',)
 
-# This is needed because driver expects cobalt.apk, but we publish
-# Cobalt.apk
-_E2E_DEFAULT_YT_BINARY_NAME = 'Cobalt'
-
 
 class OnDeviceTestsGatewayClient:
   """On-device tests Gateway Client class."""
@@ -259,6 +255,7 @@ def _process_test_requests(args: argparse.Namespace) -> List[Dict[str, Any]]:
           f'--gtest_output=xml:{dir_on_device}/{target_name}_testoutput.xml',
           f'--gtest_filter={gtest_filter}',
           '--single-process-tests',
+          '--num-retries=0',
       ]
       command_line_args = ' '.join(cmd_args)
       test_cmd_args = [f'command_line_args={command_line_args}']
@@ -284,7 +281,9 @@ def _process_test_requests(args: argparse.Namespace) -> List[Dict[str, Any]]:
         test_type = 'e2e_test'
         params = []
       else:
-        params = [f'yt_binary_name={_E2E_DEFAULT_YT_BINARY_NAME}']
+        yt_binary_name = os.path.splitext(os.path.basename(
+            args.artifact_name))[0]
+        params = [f'yt_binary_name={yt_binary_name}']
         if args.device_family in _GCS_ARCHIVE_DEVICE_FAMILIES:
           params.append(f'gcs_cobalt_archive=gs://{args.cobalt_path}.zip')
         else:
@@ -444,6 +443,7 @@ def main() -> int:
   e2e_test_group.add_argument(
       '--artifact_name',
       type=str,
+      default='Cobalt.apk',
       help=('Artifact name, used to specify the cobalt path in non-evergreen'
             ' workflows'),
   )
@@ -461,25 +461,33 @@ def main() -> int:
 
   args = parser.parse_args()
 
-  # TODO(b/428961033): Let argparse handle these checks as required arguments.
-  if args.test_type in ('e2e_test', 'yts_test'):
-    if not args.cobalt_path:
-      raise ValueError('--cobalt_path is required for e2e_test or yts_test')
-  elif args.test_type in ('unit_test', 'browser_test'):
-    if not args.device_family:
-      raise ValueError(f'--device_family is required for {args.test_type}')
-    if not args.gcs_archive_path:
-      raise ValueError(f'--gcs_archive_path is required for {args.test_type}')
-    if not args.gcs_result_path:
-      raise ValueError(f'--gcs_result_path is required for {args.test_type}')
-    if not args.filter_json_dir:
-      raise ValueError(f'--filter_json_dir is required for {args.test_type}')
-
-  test_requests = _process_test_requests(args)
   client = OnDeviceTestsGatewayClient()
 
   try:
     if args.action == 'trigger':
+      # TODO(b/428961033): Let argparse handle these checks as required
+      # arguments.
+      if args.test_type in ('e2e_test', 'yts_test'):
+        if not args.cobalt_path:
+          raise ValueError('--cobalt_path is required for e2e_test or yts_test')
+      elif args.test_type in ('unit_test', 'browser_test'):
+        if not args.device_family:
+          raise ValueError(f'--device_family is required for {args.test_type}')
+        if not args.gcs_archive_path:
+          raise ValueError(
+              f'--gcs_archive_path is required for {args.test_type}')
+        if not args.gcs_result_path:
+          raise ValueError(
+              f'--gcs_result_path is required for {args.test_type}')
+        if not args.filter_json_dir:
+          raise ValueError(
+              f'--filter_json_dir is required for {args.test_type}')
+
+      test_requests = _process_test_requests(args)
+      if not test_requests:
+        print('No tests to run.')
+        return 0
+
       client.run_trigger_command(args.token, args.label, test_requests)
     else:
       client.run_watch_command(args.token, args.session_id)
