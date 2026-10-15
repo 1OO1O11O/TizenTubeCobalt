@@ -508,6 +508,15 @@ bool StarboardBridge::HasSystemFeature(JNIEnv* env, const char* feature_name) co
       env, j_starboard_bridge_, ConvertUTF8ToJavaString(env, feature_name));
 }
 
+void StarboardBridge::ShowAlertDialog(JNIEnv* env,
+                                       const char* title,
+                                       const char* message) const {
+  SB_CHECK(env);
+  Java_BaseStarboardBridge_showAlertDialog(
+      env, j_starboard_bridge_, ConvertUTF8ToJavaString(env, title),
+      ConvertUTF8ToJavaString(env, message));
+}
+
 void StarboardBridge::SetStartupDiagnosisInfo(const char* key,
                                               const char* value) const {
   JNIEnv* env = AttachCurrentThread();

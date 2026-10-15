@@ -117,6 +117,7 @@ class StarboardBridge {
   void SetFrameRate(JNIEnv* env, float frame_rate) const;
   void EnterPIP(JNIEnv* env) const;
   bool HasSystemFeature(JNIEnv* env, const char* feature_name) const;
+  void ShowAlertDialog(JNIEnv* env, const char* title, const char* message) const;
 
   void SetStartupMilestone(jint milestone) const;
   void SetStartupDiagnosisInfo(const char* key, const char* value) const;

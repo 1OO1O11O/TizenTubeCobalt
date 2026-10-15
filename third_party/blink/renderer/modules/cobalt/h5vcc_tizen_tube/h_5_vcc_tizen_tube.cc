@@ -160,6 +160,24 @@ bool H5vccTizenTube::HasSystemFeature(
   #endif // BUILDFLAG(IS_ANDROID)
 }
 
+void H5vccTizenTube::ShowAlertDialog(
+    const WTF::String& title,
+    const WTF::String& message) {
+  if (title.IsNull() || title.length() == 0) {
+    return;
+  }
+
+  if (message.IsNull() || message.length() == 0) {
+    return;
+  }
+
+  #if BUILDFLAG(IS_ANDROID)
+    auto* env = base::android::AttachCurrentThread();
+    starboard::StarboardBridge* bridge = starboard::StarboardBridge::GetInstance();
+    bridge->ShowAlertDialog(env, title.Utf8().data(), message.Utf8().data());
+  #endif // BUILDFLAG(IS_ANDROID)
+}
+
 void H5vccTizenTube::Trace(Visitor* visitor) const {
   visitor->Trace(service_);
   ScriptWrappable::Trace(visitor);

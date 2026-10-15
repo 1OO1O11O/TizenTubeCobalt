@@ -21,6 +21,7 @@ import static dev.cobalt.util.Log.TAG;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.ActivityManager;
+import android.app.AlertDialog;
 import android.app.ApplicationExitInfo;
 import android.app.Service;
 import android.app.PictureInPictureParams;
@@ -1167,6 +1168,19 @@ public class BaseStarboardBridge {
   @CalledByNative
   protected boolean hasSystemFeature(String featureName) {
     return mAppContext.getPackageManager().hasSystemFeature(featureName);
+  }
+
+  @CalledByNative
+  protected void showAlertDialog(String title, String message) {
+    Activity activity = mActivityHolder.get();
+    if (activity == null) return;
+    activity.runOnUiThread(() -> {
+      new AlertDialog.Builder(activity)
+          .setTitle(title)
+          .setMessage(message)
+          .setPositiveButton(android.R.string.ok, null)
+          .show();
+    });
   }
 
   private static boolean isMultiple(float refreshRate, float fps, float tolerance) {
